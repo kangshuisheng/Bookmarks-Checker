@@ -390,3 +390,5 @@ $RECYCLE.BIN/
 public/manifest.json
 
 *.timestamp-*
+
+*.zip
