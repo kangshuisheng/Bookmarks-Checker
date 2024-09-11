@@ -1,18 +1,14 @@
 {
   "action": {
-    "default_icon": "public/dev-icon-32.png",
+    "default_icon": "public/bookmark.png",
     "default_popup": "src/pages/popup/index.html"
   },
   "icons": {
-    "128": "public/dev-icon-128.png"
+    "128": "public/bookmark.png"
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "contentStyle.css",
-        "dev-icon-128.png",
-        "dev-icon-32.png"
-      ],
+      "resources": ["bookmark.png"],
       "matches": []
     }
   ]

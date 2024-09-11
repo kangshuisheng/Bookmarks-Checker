@@ -1,11 +1,11 @@
 {
-  "name": "vite-web-extension",
+  "name": "Bookmarks-Checker",
   "version": "1.2.0",
-  "description": "A simple chrome extension template with Vite, React, TypeScript and Tailwind CSS.",
+  "description": "Check your bookmarks for duplicates or dead links.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JohnBra/web-extension.git"
+    "url": "https://github.com/kangshuisheng/Bookmarks-Checker"
   },
   "scripts": {
     "build": "vite build",
@@ -13,12 +13,30 @@
   },
   "type": "module",
   "dependencies": {
+    "@nextui-org/accordion": "^2.0.38",
+    "@nextui-org/button": "^2.0.37",
+    "@nextui-org/card": "^2.0.33",
+    "@nextui-org/checkbox": "^2.1.4",
+    "@nextui-org/divider": "^2.0.31",
+    "@nextui-org/image": "^2.0.31",
+    "@nextui-org/input": "^2.2.4",
+    "@nextui-org/link": "^2.0.34",
+    "@nextui-org/modal": "^2.0.39",
+    "@nextui-org/progress": "^2.0.33",
+    "@nextui-org/spacer": "^2.0.32",
+    "@nextui-org/system": "^2.2.5",
+    "@nextui-org/theme": "^2.2.9",
+    "@nextui-org/tooltip": "^2.0.39",
+    "async": "^3.2.6",
+    "axios": "^1.7.7",
+    "framer-motion": "^11.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "webextension-polyfill": "^0.11.0"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "@types/async": "^3.2.24",
     "@types/chrome": "^0.0.268",
     "@types/node": "^20.12.11",
     "@types/react": "^18.3.1",
