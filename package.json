@@ -1,6 +1,6 @@
 {
-  "name": "Bookmarks-Checker",
-  "version": "1.2.0",
+  "name": "Bookmarks Checker",
+  "version": "1.2.1",
   "description": "Check your bookmarks for duplicates or dead links.",
   "license": "MIT",
   "repository": {
