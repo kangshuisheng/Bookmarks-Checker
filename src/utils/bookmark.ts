@@ -99,7 +99,7 @@ export const checkInvalid = async (
         if (error.response) {
           status = error.response.status.toString();
         } else if (error.request) {
-          status = "无响应";
+          status = "Request Timeout";
         } else {
           status = error.message;
         }

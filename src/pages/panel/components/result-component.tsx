@@ -33,7 +33,7 @@ export const ResultComponent = ({
     <Progress
       value={progress}
       showValueLabel
-      aria-label="检查进度"
+      aria-label="progress"
       color="success"
     />
   );
@@ -45,8 +45,8 @@ export const ResultComponent = ({
     if (!data.size && !isHandling) {
       const message =
         action === ActionType.CHECK_DUPLICATE
-          ? "没有找到重复书签"
-          : "没有找到无效书签";
+          ? "No duplicate bookmarks found"
+          : "No invalid bookmarks found";
       return (
         <div>
           <h4 className="text-lg font-bold text-center">{message}</h4>
@@ -58,7 +58,8 @@ export const ResultComponent = ({
         {action === ActionType.CHECK_INVALID && renderProgress()}
         {action === ActionType.CHECK_INVALID && progress === 100 && (
           <h4 className="text-lg font-bold text-center">
-            检查结果可能存在误差，删除时请谨慎操作
+            There may be errors in the checking results, so please be careful
+            when deleting. ⚠
           </h4>
         )}
         {Array.from(data.entries()).map(([key, nodes]) => (
@@ -76,11 +77,12 @@ export const ResultComponent = ({
     case ActionType.CHECK_DUPLICATE:
       return renderBookmarkList((key) => `URL: ${key}`, data);
     case ActionType.CHECK_INVALID:
-      return renderBookmarkList((key) => `状态码: ${key}`, data);
+      return renderBookmarkList((key) => `Status: ${key}: ${key}`, data);
     default:
       return (
         <div className="flex flex-col items-center justify-center h-full gap-4 text-center text-gray-500 text-lg">
-          此插件提供了检查重复书签和失效书签的功能，您可以通过点击上方的按钮来使用。
+          This Extension is used to manage your bookmarks. Please select an
+          action to start.
         </div>
       );
   }

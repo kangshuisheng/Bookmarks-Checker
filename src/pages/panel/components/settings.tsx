@@ -10,6 +10,8 @@ import { Input } from "@nextui-org/input";
 import { Image } from "@nextui-org/image";
 import WX from "@assets/img/wx.jpg";
 import ZFB from "@assets/img/zfb.png";
+import BTC from "@assets/img/btc-qr.png";
+import ETH from "@assets/img/eth-qr.png";
 import { Divider } from "@nextui-org/divider";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
@@ -38,77 +40,133 @@ export const Settings = (props: SettingsProps) => {
     saveSettings,
   } = props;
   return (
-    <Modal isOpen={visible} onClose={onClose}>
+    <Modal isOpen={visible} onClose={onClose} size="2xl">
       <ModalContent>
-        <ModalHeader>设置</ModalHeader>
+        <ModalHeader>Settings</ModalHeader>
         <Divider />
         <ModalBody className="gap-2">
           <Card>
-            <CardHeader>重复书签检查</CardHeader>
+            <CardHeader>
+              <h3 className="text-base font-bold">
+                Duplication Check Settings
+              </h3>
+            </CardHeader>
             <Divider />
             <CardBody>
               <Checkbox
                 isSelected={useDomainForDuplicationCheck}
                 onValueChange={(flag) => setUseDomainForDuplicationCheck(flag)}
               >
-                使用域名作为重复书签的判断标准
+                Use domain for duplication check
               </Checkbox>
               <p className="text-xs text-gray-500">
-                默认情况下，如果两个书签的 URL
-                完全相同，我们将它们视为重复书签。如果启用此选项，我们将使用域名作为判断标准。
+                By default, if two bookmarks have the same URL, we consider them
+                as duplicate bookmarks. If this option is enabled, we will use
+                the domain as the criterion.
               </p>
             </CardBody>
           </Card>
           <Card>
-            <CardHeader>失效书签检查</CardHeader>
+            <CardHeader>
+              <h3 className="text-base font-bold">Request Settings</h3>
+            </CardHeader>
             <Divider />
             <CardBody className="flex flex-col gap-4">
               <Input
-                label="最大并发请求数"
+                label="Max Requests"
                 type="number"
                 value={maxRequests + ""}
                 min={1}
                 onChange={(e) => setMaxRequests(Number(e.target.value))}
-                description="最大并发请求数越大，检查速度越快，但可能会导致服务器拒绝服务"
+                description="The maximum number of concurrent requests, the larger the number, the faster the check speed, but it may cause the server to refuse service"
                 max={10}
               />
               <Input
-                label="请求超时时间"
+                label="Request Timeout"
                 type="number"
                 value={requestTimeout + ""}
                 min={1}
                 max={30}
                 onChange={(e) => setRequestTimeout(Number(e.target.value))}
-                endContent="秒"
-                description="如果一个请求超过此时间没有响应，我们将认为它是失效的"
+                endContent="Seconds"
+                description="If the request time exceeds this value, it will be considered a timeout"
               />
             </CardBody>
           </Card>
           <Button
             color="primary"
             onPress={() => {
-              saveSettings(); // 保存设置
-              onClose(); // 关闭设置对话框
+              saveSettings(); // save settings
+              onClose(); // close modal
             }}
           >
-            保存设置
+            Save
           </Button>
         </ModalBody>
         <Divider />
         <ModalFooter className="flex flex-col">
-          <p>此工具是免费的，如果您觉得它对您有帮助，欢迎赞赏！</p>
-          <div className="flex justify-around text-gray-500">
-            <center>
-              <Image src={WX} alt="微信赞赏码" width={125} height={125} />
-              <p>微信</p>
-            </center>
-            <center>
-              <Image src={ZFB} alt="支付宝赞赏码" width={125} height={125} />
-              <p>支付宝</p>
-            </center>
-          </div>
+          <Card>
+            <CardHeader>
+              <h3 className="text-base font-bold">Donate</h3>
+            </CardHeader>
+            <Divider />
+            <CardBody className="flex flex-col gap-2">
+              <p>
+                If you like this extension, you can donate to support the
+                development of this extension.
+              </p>
+              <section className="flex flex-col text-gray-500">
+                <div className="flex justify-around">
+                  <DonationOption
+                    src={WX}
+                    alt="微信赞赏码"
+                    description="WeChat"
+                  />
+                  <DonationOption
+                    src={ZFB}
+                    alt="支付宝赞赏码"
+                    description="Alipay"
+                  />
+                </div>
+                <Divider className="my-4" />
+                <div className="flex justify-around">
+                  <DonationOption
+                    src={ETH}
+                    alt="Eth-ERC20"
+                    description="Crypto currency - Eth-ERC20"
+                    address="0x96f8b24E61Ae9d4aC0f2Aa98ed9F6b3b1748B46a"
+                  />
+                  <DonationOption
+                    src={BTC}
+                    alt="BTC"
+                    description="Crypto currency - BTC"
+                    address="365L27jf7wYAa2T5d9FpRD2W6yL3F2N1kJ"
+                  />
+                </div>
+              </section>
+            </CardBody>
+          </Card>
         </ModalFooter>
       </ModalContent>
     </Modal>
   );
 };
+
+interface DonationOptionProps {
+  src: string;
+  alt: string;
+  description: string;
+  address?: string;
+}
+const DonationOption = ({
+  src,
+  alt,
+  description,
+  address,
+}: DonationOptionProps) => (
+  <div className="flex flex-col items-center">
+    <Image src={src} alt={alt} width={100} height={100} />
+    <p>{description}</p>
+    {address && <p>{address}</p>}
+  </div>
+);
