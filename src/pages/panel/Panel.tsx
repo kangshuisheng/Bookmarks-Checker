@@ -1,37 +1,43 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
-import axios from "axios";
+import { Divider } from "@nextui-org/divider";
 import { ActionType, dfs } from "@src/utils";
 import { ResultComponent } from "./components/result-component";
 import { BookmarkTreeItem } from "./components/bookmarks-tree";
 import { Actions } from "./components/actions";
 import { Settings } from "./components/settings";
-import async from "async";
-import { Divider } from "@nextui-org/divider";
+import {
+  checkDuplicate,
+  checkInvalid,
+  removeBookmarks,
+  removeNodesByIds,
+} from "@src/utils/bookmark";
+import { useSettings } from "./hooks/use-settings";
 
 export default function Panel(): JSX.Element {
-  const [bookmarks, setBookmarks] = React.useState<
+  const [bookmarks, setBookmarks] = useState<
     chrome.bookmarks.BookmarkTreeNode[]
   >([]);
-
   const [action, setAction] = useState<ActionType>();
-
   const [results, setResults] = useState<
     Map<string, chrome.bookmarks.BookmarkTreeNode[] | undefined>
   >(new Map());
-
   const [isHandling, setIsHandling] = useState<boolean>(false);
-
   const [openSettings, setOpenSettings] = useState<boolean>(false);
-
-  // 重复书签检查
-  const [useDomainForDuplicationCheck, setUseDomainForDuplicationCheck] =
-    useState<boolean>(false);
-
-  // 失效书签检查
-  const [requestTimeout, setRequestTimeout] = useState<number>(10);
-  const [maxRequests, setMaxRequests] = useState<number>(5);
+  const [selectedFolders, setSelectedFolders] = useState<
+    chrome.bookmarks.BookmarkTreeNode[]
+  >([]);
   const [progress, setProgress] = useState<number>(0);
+  const {
+    useDomainForDuplicationCheck,
+    setUseDomainForDuplicationCheck,
+    requestTimeout,
+    setRequestTimeout,
+    maxRequests,
+    setMaxRequests,
+    loadSettings,
+    saveSettings,
+  } = useSettings();
 
   const getBookmarks = async () => {
     const res = await chrome?.bookmarks?.getTree();
@@ -39,31 +45,10 @@ export default function Panel(): JSX.Element {
     setBookmarks(res[0].children || []);
   };
 
-  const loadSettings = async () => {
-    const settings = await chrome.storage.local.get([
-      "useDomainForDuplicationCheck",
-      "maxRequests",
-      "requestTimeout",
-    ]);
-    setUseDomainForDuplicationCheck(
-      settings.useDomainForDuplicationCheck || false
-    );
-    setMaxRequests(settings.maxRequests || 4);
-    setRequestTimeout(settings.requestTimeout || 10);
-  };
-
-  const saveSettings = async () => {
-    await chrome.storage.local.set({
-      useDomainForDuplicationCheck,
-      maxRequests,
-      requestTimeout,
-    });
-  };
-
   useEffect(() => {
     getBookmarks();
     loadSettings();
-  }, []);
+  }, [loadSettings]);
 
   const changeAction = (action: ActionType) => {
     setAction(action);
@@ -71,121 +56,8 @@ export default function Panel(): JSX.Element {
     setProgress(0);
   };
 
-  const checkDuplicate = async () => {
-    if (bookmarks.length === 0 || isHandling) return;
-    changeAction(ActionType.CHECK_DUPLICATE);
-    const duplicates: Map<string, chrome.bookmarks.BookmarkTreeNode[]> =
-      new Map();
-
-    const handleLeafNode = async (node: chrome.bookmarks.BookmarkTreeNode) => {
-      if (!node.url) return;
-      if (useDomainForDuplicationCheck) {
-        const domain = new URL(node.url).hostname;
-        const nodes = duplicates.get(domain);
-        if (nodes) {
-          nodes.push(node);
-        } else {
-          duplicates.set(domain, [node]);
-        }
-      } else {
-        const url = node.url;
-        const nodes = duplicates.get(url);
-        if (nodes) {
-          nodes.push(node);
-        } else {
-          duplicates.set(url, [node]);
-        }
-      }
-    };
-
-    const promises = bookmarks.map((node) => dfs(node, handleLeafNode));
-    await Promise.all(promises);
-    const filteredDuplicates = new Map(
-      Array.from(duplicates.entries()).filter(([, nodes]) => nodes.length > 1)
-    );
-    setResults(filteredDuplicates);
-  };
-
-  const countBookmarks = (node: chrome.bookmarks.BookmarkTreeNode): number => {
-    if (!node.children) return 1;
-    return node.children.reduce(
-      (count, child) => count + countBookmarks(child),
-      0
-    );
-  };
-
-  const checkInvalid = async () => {
-    if (bookmarks.length === 0 || isHandling) return;
-    setIsHandling(true);
-    changeAction(ActionType.CHECK_INVALID);
-    const invalids = new Map<string, chrome.bookmarks.BookmarkTreeNode[]>();
-    const totalBookmarks = bookmarks.reduce(
-      (count, node) => count + countBookmarks(node),
-      0
-    );
-    let processedBookmarks = 0;
-    const handleLeafNode = async (node: chrome.bookmarks.BookmarkTreeNode) => {
-      if (!node.url) return;
-      try {
-        const res = await axios.head(node.url, {
-          timeout: requestTimeout * 1000,
-        });
-        if (!res.status.toString().startsWith("2")) {
-          const nodes = invalids.get(res.status.toString());
-          if (nodes) {
-            nodes.push(node);
-          } else {
-            invalids.set(res.status.toString(), [node]);
-          }
-          setResults(new Map(invalids)); // 实时更新状态
-        }
-      } catch (error: unknown) {
-        let status = "Unknown";
-        if (axios.isAxiosError(error)) {
-          if (error.response) {
-            status = error.response.status.toString();
-          } else if (error.request) {
-            status = "无响应";
-          } else {
-            status = error.message;
-          }
-        } else if (error instanceof Error) {
-          status = error.message;
-        }
-        const nodes = invalids.get(status);
-        if (nodes) {
-          nodes.push(node);
-        } else {
-          invalids.set(status, [node]);
-        }
-        setResults(new Map(invalids)); // 实时更新状态
-      } finally {
-        setProgress((++processedBookmarks / totalBookmarks) * 100);
-      }
-    };
-
-    const asyncQueue = async.queue(
-      async (node: chrome.bookmarks.BookmarkTreeNode) => {
-        await dfs(node, handleLeafNode);
-      },
-      maxRequests
-    );
-    asyncQueue.push(bookmarks);
-    asyncQueue.drain(() => {
-      setIsHandling(false);
-    });
-  };
-
-  const removeBookmarks = async (ids: string[]) => {
-    const promises = ids.map(async (id) => {
-      await chrome.bookmarks.remove(id);
-    });
-    await Promise.all(promises);
-  };
-
   const handleDeleteForMap = async (key: string, ids: string[]) => {
     await removeBookmarks(ids);
-    // 更新 results 状态
     const updatedResults = new Map(results);
     const nodes = updatedResults.get(key);
     if (nodes) {
@@ -202,27 +74,18 @@ export default function Panel(): JSX.Element {
       }
     }
     setResults(updatedResults);
-  };
-
-  const removeNodesByIds = (
-    nodes: chrome.bookmarks.BookmarkTreeNode[],
-    ids: string[]
-  ): chrome.bookmarks.BookmarkTreeNode[] => {
-    return nodes
-      .map((node) => {
-        if (node.children) {
-          node.children = removeNodesByIds(node.children, ids);
-        }
-        return node;
-      })
-      .filter((node) => !ids.includes(node.id));
+    getBookmarks();
   };
 
   const handleDeleteFromArray = async (ids: string[]) => {
     await removeBookmarks(ids);
-    // 更新 bookmarks 状态
     const updatedBookmarks = removeNodesByIds(bookmarks, ids);
     setBookmarks(updatedBookmarks);
+    getBookmarks();
+  };
+
+  const selectFolders = (folders: chrome.bookmarks.BookmarkTreeNode[]) => {
+    setSelectedFolders(folders);
   };
 
   return (
@@ -239,23 +102,46 @@ export default function Panel(): JSX.Element {
       <Card fullWidth>
         <CardHeader>
           <Actions
-            checkDuplicate={checkDuplicate}
-            checkInvalid={checkInvalid}
+            checkDuplicate={() =>
+              checkDuplicate(
+                bookmarks,
+                selectedFolders,
+                useDomainForDuplicationCheck,
+                setResults,
+                changeAction
+              )
+            }
+            checkInvalid={() =>
+              checkInvalid(
+                bookmarks,
+                selectedFolders,
+                requestTimeout,
+                maxRequests,
+                setResults,
+                setProgress,
+                setIsHandling,
+                changeAction
+              )
+            }
             isHandling={isHandling}
             openSettings={() => setOpenSettings(true)}
+            selectFolders={selectFolders}
+            allFolders={bookmarks.reduce(
+              (acc, node) => acc.concat(node, node.children || []),
+              [] as chrome.bookmarks.BookmarkTreeNode[]
+            )}
+            selectedFolders={selectedFolders}
           />
         </CardHeader>
         <Divider />
         <CardBody>
-          <div>
-            <ResultComponent
-              data={results}
-              handleDelete={handleDeleteForMap}
-              progress={progress}
-              action={action}
-              isHandling={isHandling}
-            />
-          </div>
+          <ResultComponent
+            data={results}
+            handleDelete={handleDeleteForMap}
+            progress={progress}
+            action={action}
+            isHandling={isHandling}
+          />
         </CardBody>
       </Card>
       <Settings

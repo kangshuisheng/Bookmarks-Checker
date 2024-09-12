@@ -56,6 +56,11 @@ export const ResultComponent = ({
     return (
       <div className="flex flex-col gap-4 w-full truncate">
         {action === ActionType.CHECK_INVALID && renderProgress()}
+        {action === ActionType.CHECK_INVALID && progress === 100 && (
+          <h4 className="text-lg font-bold text-center">
+            检查结果可能存在误差，删除时请谨慎操作
+          </h4>
+        )}
         {Array.from(data.entries()).map(([key, nodes]) => (
           <div key={key}>
             <h4 className="text-lg font-bold text-danger-500">{label(key)}</h4>
@@ -74,10 +79,8 @@ export const ResultComponent = ({
       return renderBookmarkList((key) => `状态码: ${key}`, data);
     default:
       return (
-        <div className="flex flex-col items-center justify-center h-full gap-4 text-center text-gray-500">
-          <p className="text-sm">
-            此插件提供了检查重复书签和失效书签的功能，您可以通过点击上方的按钮来使用。
-          </p>
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-center text-gray-500 text-lg">
+          此插件提供了检查重复书签和失效书签的功能，您可以通过点击上方的按钮来使用。
         </div>
       );
   }

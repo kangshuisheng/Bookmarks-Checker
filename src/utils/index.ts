@@ -5,7 +5,9 @@ export enum ActionType {
 
 export const dfs = async (
   node: chrome.bookmarks.BookmarkTreeNode,
-  leafNodeCallback: (node: chrome.bookmarks.BookmarkTreeNode) => Promise<void>
+  leafNodeCallback: (
+    node: chrome.bookmarks.BookmarkTreeNode
+  ) => Promise<void> | void
 ) => {
   if (!node.children) {
     await leafNodeCallback(node);
