@@ -77,7 +77,7 @@ export const ResultComponent = ({
     case ActionType.CHECK_DUPLICATE:
       return renderBookmarkList((key) => `URL: ${key}`, data);
     case ActionType.CHECK_INVALID:
-      return renderBookmarkList((key) => `Status: ${key}: ${key}`, data);
+      return renderBookmarkList((key) => `Status: ${key}`, data);
     default:
       return (
         <div className="flex flex-col items-center justify-center h-full gap-4 text-center text-gray-500 text-lg">
