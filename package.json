@@ -1,5 +1,5 @@
 {
-  "name": "Bookmarks Checker",
+  "name": "Bookmarks Checker - Duplicate and Dead Links",
   "version": "1.2.2",
   "description": "Check your bookmarks for duplicates or dead links.",
   "license": "MIT",

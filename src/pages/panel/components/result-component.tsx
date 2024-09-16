@@ -54,13 +54,15 @@ export const ResultComponent = ({
       );
     }
     return (
-      <div className="flex flex-col gap-4 w-full truncate">
-        {action === ActionType.CHECK_INVALID && renderProgress()}
-        {action === ActionType.CHECK_INVALID && progress === 100 && (
-          <h4 className="text-lg font-bold text-center">
-            There may be errors in the checking results, so please be careful
-            when deleting. ⚠
-          </h4>
+      <div className="flex flex-col gap-4 w-full h-full overflow-y-auto">
+        {action === ActionType.CHECK_INVALID && (
+          <div className="flex flex-col gap-2">
+            {renderProgress()}
+            <h4 className="text-lg font-bold text-center text-gray-500">
+              There may be errors in the checking results, so please be careful
+              when deleting.
+            </h4>
+          </div>
         )}
         {Array.from(data.entries()).map(([key, nodes]) => (
           <div key={key}>

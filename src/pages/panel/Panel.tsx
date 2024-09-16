@@ -99,7 +99,7 @@ export default function Panel(): JSX.Element {
           />
         ))}
       </Card>
-      <Card fullWidth>
+      <Card fullWidth className="overflow-y-auto">
         <CardHeader>
           <Actions
             checkDuplicate={() =>
